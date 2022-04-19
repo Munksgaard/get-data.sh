@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run ShellCheck
+      uses: ludeeus/action-shellcheck@master
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add data
+      run: |
+        mkdir -p external-data/accelerate/canny/data
+        mkdir -p accelerate/canny/data
+        ./add-data.sh https://sid.erda.dk/share_redirect/FlhwY8rtfk/accelerate/canny/lena256.in accelerate/canny/data/lena256.in
+        ./add-data.sh https://sid.erda.dk/share_redirect/FlhwY8rtfk/accelerate/canny/lena256.out accelerate/canny/data/lena256.out
+        test $(shasum -a 256 external-data.txt | cut -f 1 -d ' ') = "a6975a2366c66e7b92cadf53a70d6ae414d150bcc1a09717fd16ac7bc2071595"
+
+    - name: Get data
+      run: |
+        rm -rf external-data
+        ./get-data.sh external-data.txt
+
+        test $(shasum -a 256 external-data/accelerate/canny/data/lena256.in | cut -f 1 -d ' ') = "8c63faf15d9f8028826ed7d9a1647917a833092c1bd291f017b6618584124707"
+
+        test $(shasum -a 256 external-data/accelerate/canny/data/lena256.out | cut -f 1 -d ' ') = "c4ce67c6c873105a1d158f181346a9eef9b0becb495ade2a9d5bc2aaeec3e082"
