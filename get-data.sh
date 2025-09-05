@@ -16,30 +16,36 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# usage: get-data.sh external-data.txt
+# usage: get-data.sh FILE [FILTER]
 #
-# external-data.txt file must contain lines of the format:
+# FILE must contain lines of the format:
 #
 #   PATH URL SHA256SUM
 #
-# get-data.sh will attempt to download the file at URL into PATH (relative to
-# the location of external-data.txt) after verifying that the sha256sum is
-# identical to SHA256SUM. Neither field can contain spaces.
+# For each line (optionally filtered by FILTER), get-data.sh will attempt to
+# download the file at URL into PATH (relative to the location of FILE) after
+# verifying that the sha256sum is identical to SHA256SUM. Neither field can
+# contain spaces.
 
 set -o errexit
 set -o pipefail
 set -o nounset
 
-if [ "$#" -ne "1" ]; then
-    echo "Usage: $0 FILE"
+if [ "$#" -ge "1" -a "$#" -le "2" ]; then
+    echo "Usage: $0 FILE [FILTER]"
     echo "FILE must be a file containing lines of the format:"
+    echo
     echo "   PATH URL SHA256SUM"
-    echo "$0 will attempt to download the file at URL into PATH (relative to"
-    echo "the location of external-data.txt) after verifying that the sha256sum is"
-    echo "identical to SHA256SUM. Neither field can contain spaces."
+    echo
+    echo "For each line (optionally filtered by FILTER), get-data.sh will attempt to"
+    echo "download the file at URL into PATH (relative to the location of FILE) after"
+    echo "verifying that the sha256sum is identical to SHA256SUM. Neither field can"
+    echo "contain spaces."
 
     exit 3
 fi
+
+
 
 if [ -z "$(which shasum)" ]; then
     echo "Error: shasum could not be found."
@@ -85,6 +91,6 @@ while read -r OUTPUT URL CHECKSUM; do
         echo "Expected $CHECKSUM, got $COMPUTED_SUM."
         exit 1
     fi
-done < "$1"
+done
 
 echo "Done."
